@@ -558,40 +558,58 @@ let editId=null,lineChart=null,doughChart=null,nextId=40;
 let expenses=[],expNextId=1,editExpId=null;
 
 const DR=[
-  {id:1,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'',month:4,dep:2550171,inc:524289},
-  {id:2,group:'การตลาด ยิงแอด',cat:'API EX E',web:'',month:4,dep:477336,inc:154300},
-  {id:3,group:'การตลาด ยิงแอด',cat:'แอดมันสมัคร',web:'',month:4,dep:648536,inc:84959},
-  {id:4,group:'การตลาด ยิงแอด',cat:'ROI ADS',web:'',month:4,dep:42054,inc:13258},
-  {id:5,group:'การตลาด ยิงแอด',cat:'รีสเมนู',web:'',month:4,dep:599573,inc:62832},
-  {id:6,group:'การตลาด ยิงแอด',cat:'ADS OK',web:'',month:4,dep:582822,inc:93258},
-  {id:7,group:'การตลาด ยิงแอด',cat:'EX LINE E',web:'',month:4,dep:0,inc:-360},
-  {id:8,group:'การตลาด ยิงแอด',cat:'EX LINE T',web:'',month:4,dep:0,inc:-7662},
-  {id:9,group:'SEO',cat:'SEO สไปรัท',web:'',month:4,dep:1807,inc:1060},
-  {id:10,group:'SEO',cat:'SEO หอม',web:'',month:4,dep:2119,inc:1619},
-  {id:11,group:'SEO',cat:'SEO บอล',web:'',month:4,dep:0,inc:47814},
-  {id:12,group:'แบรนเนอร์',cat:'วอมี แบรนเนอร์',web:'',month:4,dep:174591,inc:49818},
-  {id:13,group:'แบรนเนอร์',cat:'เต้ย แบรนเนอร์',web:'',month:4,dep:202919,inc:27210},
-  {id:14,group:'แบรนเนอร์',cat:'mini แบรนเนอร์',web:'',month:4,dep:705176,inc:81815},
-  {id:15,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'',month:3,dep:2100000,inc:480000},
-  {id:16,group:'SEO',cat:'SEO หอม',web:'',month:3,dep:1800,inc:1200},
-  {id:17,group:'แบรนเนอร์',cat:'mini แบรนเนอร์',web:'',month:3,dep:620000,inc:74000},
-  {id:18,group:'การตลาด ยิงแอด',cat:'ROI ADS',web:'',month:2,dep:35000,inc:11000},
-  {id:19,group:'แบรนเนอร์',cat:'เต้ย แบรนเนอร์',web:'',month:2,dep:180000,inc:24000},
-  {id:20,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'',month:1,dep:2980559,inc:687703},
-  {id:21,group:'การตลาด ยิงแอด',cat:'API EX E',web:'',month:1,dep:438168,inc:-55274},
-  {id:22,group:'การตลาด ยิงแอด',cat:'แอดมันสมัคร',web:'',month:1,dep:913444,inc:62372},
-  {id:23,group:'การตลาด ยิงแอด',cat:'ROI ADS',web:'',month:1,dep:121133,inc:13381},
-  {id:24,group:'การตลาด ยิงแอด',cat:'รีสเมนู',web:'',month:1,dep:442216,inc:157667},
-  {id:25,group:'การตลาด ยิงแอด',cat:'ADS OK',web:'',month:1,dep:1024678,inc:121870},
-  {id:26,group:'SEO',cat:'SEO สไปรัท',web:'',month:1,dep:5352,inc:2872},
-  {id:27,group:'SEO',cat:'SEO หอม',web:'',month:1,dep:29289,inc:11275},
-  {id:28,group:'แบรนเนอร์',cat:'วูมี แบรนเนอร์',web:'',month:1,dep:253920,inc:86288},
-  {id:29,group:'แบรนเนอร์',cat:'เต้ย แบรนเนอร์',web:'',month:1,dep:95458,inc:-3094},
-  {id:30,group:'แบรนเนอร์',cat:'mini แบรนเนอร์',web:'',month:1,dep:302397,inc:93838},
+  {id:21,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'HV',month:1,dep:2980559,inc:687703},
+  {id:22,group:'การตลาด ยิงแอด',cat:'API EX E',web:'HV',month:1,dep:438168,inc:-55274},
+  {id:23,group:'การตลาด ยิงแอด',cat:'แอดมันสมัคร',web:'HV',month:1,dep:913444,inc:62372},
+  {id:24,group:'การตลาด ยิงแอด',cat:'ROI ADS',web:'HV',month:1,dep:121133,inc:13381},
+  {id:25,group:'การตลาด ยิงแอด',cat:'รีสเมนู',web:'HV',month:1,dep:442216,inc:157667},
+  {id:26,group:'การตลาด ยิงแอด',cat:'ADS OK',web:'HV',month:1,dep:1024678,inc:121870},
+  {id:27,group:'SEO',cat:'SEO สไปรัท',web:'HV',month:1,dep:5352,inc:2872},
+  {id:28,group:'SEO',cat:'SEO หอม',web:'HV',month:1,dep:29289,inc:11275},
+  {id:29,group:'แบรนเนอร์',cat:'วูมี แบรนเนอร์',web:'HV',month:1,dep:253920,inc:86288},
+  {id:30,group:'แบรนเนอร์',cat:'เต้ย แบรนเนอร์',web:'HV',month:1,dep:95458,inc:-3094},
+  {id:31,group:'แบรนเนอร์',cat:'mini แบรนเนอร์',web:'HV',month:1,dep:302397,inc:93838},
+  {id:32,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'HV',month:2,dep:2487779,inc:585304},
+  {id:34,group:'การตลาด ยิงแอด',cat:'API EX E',web:'HV',month:2,dep:711583,inc:131503},
+  {id:35,group:'การตลาด ยิงแอด',cat:'แอดมินสมัคร',web:'HV',month:2,dep:1472421,inc:74739},
+  {id:36,group:'การตลาด ยิงแอด',cat:'ROI ADS',web:'HV',month:2,dep:52398,inc:20937},
+  {id:37,group:'การตลาด ยิงแอด',cat:'ริสเมนู',web:'HV',month:2,dep:374101,inc:122474},
+  {id:38,group:'การตลาด ยิงแอด',cat:'ADS OK',web:'HV',month:2,dep:757970,inc:82594},
+  {id:39,group:'SEO',cat:'SEO สไปร์ท',web:'HV',month:2,dep:2915,inc:1218},
+  {id:40,group:'SEO',cat:'SEO หอม',web:'HV',month:2,dep:13320,inc:9220},
+  {id:41,group:'แบรนเนอร์',cat:'วุฒิ แบรนเนอร์',web:'HV',month:2,dep:182438,inc:30760},
+  {id:42,group:'แบรนเนอร์',cat:'เต้ย แบรนเนอร์',web:'HV',month:2,dep:352393,inc:25583},
+  {id:43,group:'แบรนเนอร์',cat:'mini แบรนเนอร์',web:'HV',month:2,dep:572481,inc:86643},
+  {id:44,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'HV',month:2,dep:2822822,inc:845649},
+  {id:45,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'HV',month:3,dep:2822822,inc:845649},
+  {id:46,group:'การตลาด ยิงแอด',cat:'API EX E',web:'HV',month:3,dep:702734,inc:162309},
+  {id:47,group:'การตลาด ยิงแอด',cat:'แอดมินสมัคร',web:'HV',month:3,dep:656567,inc:101983},
+  {id:48,group:'การตลาด ยิงแอด',cat:'ROI ADS',web:'HV',month:3,dep:48967,inc:22921},
+  {id:49,group:'การตลาด ยิงแอด',cat:'ริสเมนู',web:'HV',month:3,dep:530880,inc:122970},
+  {id:50,group:'การตลาด ยิงแอด',cat:'ADS OK',web:'HV',month:3,dep:614019,inc:164257},
+  {id:51,group:'SEO',cat:'SEO สไปร์ท',web:'HV',month:3,dep:5329,inc:3429},
+  {id:52,group:'SEO',cat:'SEO หอม',web:'HV',month:3,dep:7492,inc:2552},
+  {id:53,group:'แบรนเนอร์',cat:'วุฒิ แบรนเนอร์',web:'HV',month:3,dep:216409,inc:22577},
+  {id:54,group:'แบรนเนอร์',cat:'เต้ย แบรนเนอร์',web:'HV',month:3,dep:472616,inc:107709},
+  {id:55,group:'แบรนเนอร์',cat:'mini แบรนเนอร์',web:'HV',month:3,dep:1032974,inc:244620},
+  {id:56,group:'การตลาด ยิงแอด',cat:'ADS BRANER',web:'HV',month:4,dep:2685582,inc:569905},
+  {id:57,group:'การตลาด ยิงแอด',cat:'API EX E',web:'HV',month:4,dep:500231,inc:168694},
+  {id:58,group:'การตลาด ยิงแอด',cat:'แอดมินสมัคร',web:'HV',month:4,dep:675387,inc:85950},
+  {id:59,group:'การตลาด ยิงแอด',cat:'ROI ADS',web:'HV',month:4,dep:45504,inc:13908},
+  {id:60,group:'การตลาด ยิงแอด',cat:'ริสเมนู',web:'HV',month:4,dep:614044,inc:58617},
+  {id:61,group:'การตลาด ยิงแอด',cat:'ADS OK',web:'HV',month:4,dep:650970,inc:116994},
+  {id:62,group:'การตลาด ยิงแอด',cat:'EX LINE E',web:'HV',month:4,dep:3209,inc:-283},
+  {id:63,group:'การตลาด ยิงแอด',cat:'EX LINE T',web:'HV',month:4,dep:318346,inc:-5378},
+  {id:64,group:'SEO',cat:'SEO สไปร์ท',web:'HV',month:4,dep:1807,inc:1060},
+  {id:65,group:'SEO',cat:'SEO หอม',web:'HV',month:4,dep:2213,inc:1713},
+  {id:66,group:'SEO',cat:'SEO บอล',web:'HV',month:4,dep:57410,inc:47824},
+  {id:67,group:'แบรนเนอร์',cat:'วุฒิ แบรนเนอร์',web:'HV',month:4,dep:177731,inc:52958},
+  {id:68,group:'แบรนเนอร์',cat:'เต้ย แบรนเนอร์',web:'HV',month:4,dep:204441,inc:28548},
+  {id:69,group:'แบรนเนอร์',cat:'mini แบรนเนอร์',web:'HV',month:4,dep:728481,inc:95758},
 ];
-const DW=['hvgas.com','hvgas2.com'];
+const DW=['HV','GSY','UPX','UVO','UWK'];
 let rows=[],webs=[];
-
+let nextId=70;
 /* ── STORAGE ── */
 function loadData(){
   try{
@@ -605,7 +623,7 @@ function loadData(){
     webs=sw?JSON.parse(sw):[...DW];
     expenses=se?JSON.parse(se):[];
     if(sn)document.getElementById('bName').textContent=sn;
-    if(si)nextId=+si;
+    if(si)nextId=+si;else nextId=Math.max(...rows.map(r=>r.id),69)+1;
     if(sx)expNextId=+sx;
   }catch(e){rows=[...DR];webs=[...DW];expenses=[];}
 }
