@@ -1224,65 +1224,92 @@ function checkSession(){
 /* ══ FIREBASE CLOUD SYNC ══ */
 let fbDb=null,fbAutoSync=false,fbUrl='';
 
+/* ── ตั้งค่า Firebase URL ที่นี่ (ถ้าต้องการ hardcode) ── */
+const FB_DEFAULT_URL='https://aff-data-dc634-default-rtdb.asia-southeast1.firebasedatabase.app';
+
 function fbSaveConfig(){localStorage.setItem('hvgas_fburl',fbUrl);localStorage.setItem('hvgas_fbauto',fbAutoSync?'1':'0');}
 function fbLoadConfig(){
-  fbUrl=localStorage.getItem('hvgas_fburl')||'';
-  fbAutoSync=localStorage.getItem('hvgas_fbauto')==='1';
-  if(fbUrl){fbInitSDK(fbUrl,false);}
+  fbUrl=localStorage.getItem('hvgas_fburl')||FB_DEFAULT_URL;
+  fbAutoSync=localStorage.getItem('hvgas_fbauto')!=='0';
+  if(fbUrl){fbInitSDK(fbUrl,false,true);}
 }
 
-function fbInitSDK(url,showToast){
+function fbInitSDK(url,showToast,autoPull){
   fbUrl=url.trim().replace(/\/+$/,'');
   fbDb=null;
-  const script=document.getElementById('fbSDKScript');
-  if(script)script.remove();
+  const old=document.getElementById('fbSDKScript');if(old)old.remove();
+  const old2=document.getElementById('fbDBScript');if(old2)old2.remove();
   const s=document.createElement('script');
   s.id='fbSDKScript';
   s.src='https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-app-compat.min.js';
   s.onload=()=>{
     const s2=document.createElement('script');
+    s2.id='fbDBScript';
     s2.src='https://cdnjs.cloudflare.com/ajax/libs/firebase/10.12.2/firebase-database-compat.min.js';
     s2.onload=()=>{
       try{
+        if(firebase.apps.length){try{firebase.app().delete();}catch(e){}}
         const projectId=fbUrl.split('//')[1]?.split('.')[0]||'hvgas';
-        const app=firebase.apps.length?firebase.app():firebase.initializeApp({databaseURL:fbUrl,projectId,appId:'hvgas-dashboard'});
-        fbDb=firebase.database(app);
+        firebase.initializeApp({databaseURL:fbUrl,projectId,appId:'hvgas-dashboard'});
+        fbDb=firebase.database();
         fbDb.ref('.info/connected').on('value',snap=>{
           const ok=snap.val();
           fbSetStatus(ok?'on':'off');
-          if(ok&&showToast)toast('เชื่อมต่อ Firebase สำเร็จ ✓');
+          if(ok){
+            if(showToast)toast('เชื่อมต่อ Firebase สำเร็จ ✓');
+            if(autoPull)fbAutoPullOnOpen();
+          }
         });
         fbSaveConfig();
         renderSyncPage();
       }catch(e){
-        document.getElementById('fbErr').textContent='เชื่อมต่อไม่สำเร็จ: '+e.message;
+        const el=document.getElementById('fbErr');
+        if(el)el.textContent='เชื่อมต่อไม่สำเร็จ: '+e.message;
         fbDb=null;fbUrl='';renderSyncPage();
       }
     };
     document.head.appendChild(s2);
   };
-  s.onerror=()=>{document.getElementById('fbErr').textContent='โหลด Firebase SDK ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ต';};
+  s.onerror=()=>{const el=document.getElementById('fbErr');if(el)el.textContent='โหลด Firebase SDK ไม่สำเร็จ';};
   document.head.appendChild(s);
+}
+
+async function fbAutoPullOnOpen(){
+  if(!fbDb)return;
+  try{
+    const snap=await fbDb.ref('hvgas/data').get();
+    if(!snap.exists())return;
+    const d=snap.val();
+    if(d.rows&&d.rows.length>0){
+      rows=d.rows;
+      if(d.webs)webs=d.webs;
+      if(d.expenses)expenses=d.expenses;
+      nextId=Math.max(...rows.map(r=>r.id),69)+1;
+      saveAll();renderAll();
+      const ts=new Date().toLocaleString('th-TH');
+      localStorage.setItem('hvgas_fbsync',ts);
+      const el=document.getElementById('fbLastSync');
+      if(el)el.textContent='ซิงค์อัตโนมัติ: '+ts;
+      toast('☁ ดึงข้อมูล Cloud สำเร็จ');
+    }
+  }catch(e){console.log('auto pull:',e.message);}
 }
 
 function fbConnect(){
   const url=document.getElementById('fbUrlInput').value.trim();
   document.getElementById('fbErr').textContent='';
-  if(!url||!url.startsWith('https://')){document.getElementById('fbErr').textContent='URL ไม่ถูกต้อง ต้องขึ้นต้นด้วย https://';return;}
-  if(!url.includes('firebasedatabase.app')&&!url.includes('firebaseio.com')){document.getElementById('fbErr').textContent='URL ต้องเป็น Firebase Realtime Database URL';return;}
-  document.getElementById('fbErr').textContent='';
+  if(!url||!url.startsWith('https://')){document.getElementById('fbErr').textContent='URL ไม่ถูกต้อง';return;}
+  if(!url.includes('firebasedatabase.app')&&!url.includes('firebaseio.com')){document.getElementById('fbErr').textContent='ต้องเป็น Firebase Realtime Database URL';return;}
   fbSetStatus('loading');
-  fbInitSDK(url,true);
+  fbInitSDK(url,true,true);
 }
 
 function fbDisconnect(){
   if(!confirm('ยกเลิกการเชื่อมต่อ Firebase?'))return;
-  try{if(fbDb)firebase.app().delete();}catch(e){}
+  try{if(typeof firebase!=='undefined'&&firebase.apps.length)firebase.app().delete();}catch(e){}
   fbDb=null;fbUrl='';fbAutoSync=false;
   localStorage.removeItem('hvgas_fburl');localStorage.removeItem('hvgas_fbauto');
-  fbSetStatus('off');
-  renderSyncPage();
-  toast('ยกเลิกการเชื่อมต่อแล้ว');
+  fbSetStatus('off');renderSyncPage();toast('ยกเลิกการเชื่อมต่อแล้ว');
 }
 
 async function fbPush(){
@@ -1292,8 +1319,8 @@ async function fbPush(){
     await fbDb.ref('hvgas/data').set(data);
     const ts=new Date().toLocaleString('th-TH');
     localStorage.setItem('hvgas_fbsync',ts);
-    document.getElementById('fbLastSync').textContent='อัพโหลดล่าสุด: '+ts;
-    toast('อัพโหลดข้อมูลสำเร็จ ✓');
+    const el=document.getElementById('fbLastSync');if(el)el.textContent='อัพโหลดล่าสุด: '+ts;
+    toast('☁ อัพโหลดสำเร็จ ✓');
   }catch(e){toast('อัพโหลดไม่สำเร็จ: '+e.message);}
 }
 
@@ -1304,24 +1331,19 @@ async function fbPull(){
     const snap=await fbDb.ref('hvgas/data').get();
     if(!snap.exists()){toast('ไม่พบข้อมูลใน Cloud');return;}
     const d=snap.val();
-    if(d.rows)rows=d.rows;
-    if(d.webs)webs=d.webs;
-    if(d.expenses)expenses=d.expenses;
+    if(d.rows)rows=d.rows;if(d.webs)webs=d.webs;if(d.expenses)expenses=d.expenses;
+    nextId=Math.max(...rows.map(r=>r.id),69)+1;
     saveAll();renderAll();
     const ts=new Date().toLocaleString('th-TH');
-    document.getElementById('fbLastSync').textContent='ดึงข้อมูลล่าสุด: '+ts;
-    toast('ดึงข้อมูลสำเร็จ ✓');
+    const el=document.getElementById('fbLastSync');if(el)el.textContent='ดึงข้อมูลล่าสุด: '+ts;
+    toast('☁ ดึงข้อมูลสำเร็จ ✓');
   }catch(e){toast('ดึงข้อมูลไม่สำเร็จ: '+e.message);}
 }
 
-function fbSetAuto(on){
-  fbAutoSync=on;fbSaveConfig();
-  toast(on?'เปิด Auto Sync แล้ว':'ปิด Auto Sync แล้ว');
-}
+function fbSetAuto(on){fbAutoSync=on;fbSaveConfig();toast(on?'เปิด Auto Sync แล้ว':'ปิด Auto Sync แล้ว');}
 
 function fbSetStatus(state){
-  const dot=document.getElementById('fbDot');
-  if(!dot)return;
+  const dot=document.getElementById('fbDot');if(!dot)return;
   if(state==='on'){dot.style.background='var(--acc3)';dot.style.boxShadow='0 0 6px var(--acc3)';}
   else if(state==='loading'){dot.style.background='var(--acc1)';dot.style.boxShadow='0 0 6px var(--acc1)';}
   else{dot.style.background='var(--txt3)';dot.style.boxShadow='none';}
@@ -1333,22 +1355,17 @@ function renderSyncPage(){
   const ac=document.getElementById('fbConnectedCard');
   const au=document.getElementById('fbAutoCard');
   const badge=document.getElementById('fbStatusBadge');
-  const ui=document.getElementById('fbUrlInput');
   if(!cc)return;
   if(connected){
-    cc.style.display='none';
-    ac.style.display='block';
-    au.style.display='block';
+    cc.style.display='none';ac.style.display='block';au.style.display='block';
     document.getElementById('fbUrlDisplay').textContent=fbUrl;
     document.getElementById('fbAutoToggle').checked=fbAutoSync;
     const ls=localStorage.getItem('hvgas_fbsync');
-    if(ls)document.getElementById('fbLastSync').textContent='ซิงค์ล่าสุด: '+ls;
-    if(badge)badge.innerHTML='<span class="fb-status on"><span class="fb-dot on"></span>Connected</span>';
-  } else {
-    cc.style.display='block';
-    ac.style.display='none';
-    au.style.display='none';
-    if(ui&&fbUrl)ui.value=fbUrl;
+    if(ls){const el=document.getElementById('fbLastSync');if(el)el.textContent='ซิงค์ล่าสุด: '+ls;}
+    if(badge)badge.innerHTML='<span class="fb-status on"><span class="fb-dot on"></span>Connected — Auto Sync ON</span>';
+  }else{
+    cc.style.display='block';ac.style.display='none';au.style.display='none';
+    const ui=document.getElementById('fbUrlInput');if(ui)ui.value=fbUrl||FB_DEFAULT_URL;
     if(badge)badge.innerHTML='<span class="fb-status off"><span class="fb-dot off"></span>Not connected</span>';
   }
 }
