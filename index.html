@@ -1199,7 +1199,7 @@ function saveExp(){
 function delExp(id){if(!confirm('ลบ?'))return;expenses=expenses.filter(x=>x.id!==id);autoSave();renderChart();toast('ลบแล้ว');}
 
 /* ══ AUTH ══ */
-const DEFAULT_USERS=[{user:'admin',pass:'Amini123**',role:'Admin'},{user:'hvgas',pass:'hvgas',role:'User'}];
+const DEFAULT_USERS=[{user:'admin',pass:'Amini1234**',role:'Admin'},{user:'hvgas',pass:'hvgas',role:'User'}];
 function getUsers(){try{const u=localStorage.getItem('hvgas_users');return u?JSON.parse(u):null;}catch(e){return null;}}
 function saveUsers(u){localStorage.setItem('hvgas_users',JSON.stringify(u));}
 function getSession(){try{return JSON.parse(sessionStorage.getItem('hvgas_sess')||'null');}catch(e){return null;}}
