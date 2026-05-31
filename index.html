@@ -194,7 +194,10 @@ table.dt tr:hover td{background:rgba(255,255,255,.025);}
 .fb-btn.sync:hover{background:rgba(0,255,170,.2);}
 .fb-err{font-size:11px;color:#f87171;margin-top:8px;min-height:14px;}
 .fb-sync-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;}
-.fb-last{font-size:10px;color:var(--txt3);}
+.tog-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;font-size:11px;border-radius:20px;cursor:pointer;border:0.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--t3,#55536e);font-family:inherit;transition:.2s;opacity:.45;}
+.tog-btn.on{opacity:1;border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--t2,#9896b8);}
+.tog-btn:hover{opacity:.8;}
+
 .user-badge{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(167,139,250,.08);border:0.5px solid var(--bd);border-radius:10px;margin-bottom:8px;}
 .user-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#818cf8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;flex-shrink:0;box-shadow:0 0 10px rgba(167,139,250,.4);}
 .user-info{flex:1;overflow:hidden;}
@@ -366,9 +369,16 @@ table.dt tr:hover td{background:rgba(255,255,255,.025);}
   <div class="chart-card">
     <div class="chart-head">
       <div class="chart-title" id="cvTitle">รายจ่าย vs รายได้</div>
-      <div class="cleg">
-        <span><span class="cleg-dot" style="background:#ff6b6b;box-shadow:0 0 8px #ff6b6b88;"></span>รายจ่าย (expenses ที่กรอก)</span>
-        <span><span class="cleg-dot" style="background:#00ffaa;box-shadow:0 0 8px #00ffaa88;"></span>รายได้ (inc)</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <button class="tog-btn" id="togDep" onclick="toggleBar('dep')" title="ยอดฝาก">
+          <span style="background:#fb923c;box-shadow:0 0 6px #fb923c88;" class="cleg-dot"></span>ยอดฝาก
+        </button>
+        <button class="tog-btn on" id="togExp" onclick="toggleBar('exp')" title="รายจ่าย">
+          <span style="background:#ff6b6b;box-shadow:0 0 6px #ff6b6b88;" class="cleg-dot"></span>รายจ่าย
+        </button>
+        <button class="tog-btn on" id="togInc" onclick="toggleBar('inc')" title="รายได้">
+          <span style="background:#00ffaa;box-shadow:0 0 6px #00ffaa88;" class="cleg-dot"></span>รายได้
+        </button>
       </div>
     </div>
     <div id="glowWrap" style="position:relative;width:100%;"></div>
@@ -845,6 +855,15 @@ function closeOv(id){document.getElementById(id).classList.remove('on');}
 document.querySelectorAll('.ov').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.ov.on').forEach(o=>o.classList.remove('on'));});
 
+/* ── BAR VISIBILITY ── */
+const barVis={dep:false,exp:true,inc:true};
+function toggleBar(key){
+  barVis[key]=!barVis[key];
+  const btn=document.getElementById('tog'+key.charAt(0).toUpperCase()+key.slice(1));
+  if(btn)btn.classList.toggle('on',barVis[key]);
+  renderChart();
+}
+
 /* ══════════════════════════════════════
    CHART PAGE
 ══════════════════════════════════════ */
@@ -925,7 +944,14 @@ function drawGlowChart(items,mv,mv2,mode,gv,fr){
   wrap.innerHTML='';
   if(!items.length){wrap.innerHTML='<div style="padding:40px;text-align:center;color:var(--txt3);">ไม่มีข้อมูล</div>';return;}
 
-  const ROW=72, PAD_L=148, PAD_R=110, PAD_T=24, PAD_B=24;
+  const visCount=[barVis.dep,barVis.exp,barVis.inc].filter(Boolean).length;
+  const BAR_H=20;
+  const BAR_GAP=5;
+  const LABEL_H=32; /* name + group tag */
+  const NET_H=20;   /* กำไร badge */
+  const ROW=LABEL_H+(visCount*(BAR_H+BAR_GAP))+NET_H+12;
+
+  const PAD_L=152, PAD_R=110, PAD_T=28, PAD_B=16;
   const H=items.length*ROW+PAD_T+PAD_B;
   const canvas=document.createElement('canvas');
   canvas.setAttribute('role','img');canvas.setAttribute('aria-label','กราฟรายจ่ายและรายได้');
@@ -953,9 +979,14 @@ function drawGlowChart(items,mv,mv2,mode,gv,fr){
     ctx.scale(2,2);
     const CW=W-PAD_L-PAD_R;
 
-    /* max across exp and inc only (red=exp, green=inc) */
-    const allV=[...items.flatMap(it=>[it.exp||0,it.inc||0]),...(hasCompare?cmpItems.flatMap(it=>[it.exp||0,it.inc||0]):[])].filter(v=>v>0);
-    const maxV=Math.max(...allV,1);
+    /* max across visible bars only */
+    const allV=[];
+    items.forEach(it=>{
+      if(barVis.dep)allV.push(it.dep||0);
+      if(barVis.exp)allV.push(it.exp||0);
+      if(barVis.inc)allV.push(it.inc||0);
+    });
+    const maxV=Math.max(...allV.filter(v=>v>0),1);
 
     /* grid lines */
     for(let s=0;s<=5;s++){
@@ -970,74 +1001,75 @@ function drawGlowChart(items,mv,mv2,mode,gv,fr){
       ctx.restore();
     }
 
+    /* count visible bars */
+    const BAR_H=20, BAR_GAP=6, LABEL_H=30, NET_H=20;
+
     items.forEach((it,i)=>{
       const y=PAD_T+i*ROW;
-      const midY=y+ROW/2;
-      const barH=22;
+      const depV=it.dep||0;
       const expV=it.exp||0;
       const incV=it.inc||0;
       const net=incV-expV;
 
-      /* ── label ── */
+      /* ── LABEL top ── */
       ctx.save();
-      ctx.fillStyle='#c4c2e0';ctx.font='11px IBM Plex Sans Thai,sans-serif';
-      ctx.textAlign='right';ctx.textBaseline='middle';
-      ctx.fillText(it.label.length>17?it.label.slice(0,16)+'…':it.label,PAD_L-12,midY-barH/2-2);
-      /* group tag */
+      ctx.fillStyle='#d4d2f0';
+      ctx.font='bold 11px IBM Plex Sans Thai,sans-serif';
+      ctx.textAlign='right';ctx.textBaseline='top';
+      ctx.fillText(it.label.length>18?it.label.slice(0,17)+'…':it.label, PAD_L-10, y+4);
       if(it.group){
-        const gi=GRP.indexOf(it.group);const gc=['#a78bfa','#00ffaa','#f472b6'][gi>=0?gi:0];
-        ctx.fillStyle=gc+'88';ctx.font='8px IBM Plex Sans Thai,sans-serif';
-        ctx.fillText(it.group.replace('การตลาด ยิงแอด','ยิงแอด'),PAD_L-12,midY+barH/2+6);
+        const gi=GRP.indexOf(it.group);
+        const gc=['#a78bfa','#00ffaa','#f472b6'][gi>=0?gi:0];
+        ctx.fillStyle=gc+'99';
+        ctx.font='8px IBM Plex Sans Thai,sans-serif';
+        ctx.fillText(it.group.replace('การตลาด ยิงแอด','ยิงแอด'), PAD_L-10, y+18);
       }
       ctx.restore();
 
-      /* ── RED BAR = รายจ่าย (expenses ที่กรอก) ── */
-      if(expV>0){
-        const eW=Math.max(expV/maxV*CW,2);
-        ctx.save();
-        ctx.shadowColor='#ff6b6b';ctx.shadowBlur=20;
-        const gd=ctx.createLinearGradient(PAD_L,0,PAD_L+eW,0);
-        gd.addColorStop(0,'rgba(255,107,107,.45)');gd.addColorStop(1,'#ff6b6b');
-        ctx.fillStyle=gd;
-        ctx.beginPath();ctx.roundRect(PAD_L,midY-barH-3,eW,barH,5);ctx.fill();
-        ctx.shadowBlur=0;
-        const etxt=expV>=1e6?(expV/1e6).toFixed(1)+'M':expV>=1000?(expV/1000).toFixed(0)+'K':Math.round(expV).toLocaleString();
-        ctx.fillStyle='#ff8f8f';ctx.shadowColor='#ff6b6b';ctx.shadowBlur=10;
-        ctx.font='bold 10px IBM Plex Sans Thai,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
-        ctx.fillText(etxt,PAD_L+eW+6,midY-barH/2-3);
-        ctx.restore();
-      } else {
-        /* no expense — show hint */
-        ctx.save();ctx.fillStyle='#33304a';ctx.font='9px IBM Plex Sans Thai,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
-        ctx.fillText('ยังไม่มีรายจ่าย',PAD_L+4,midY-barH/2-3);ctx.restore();
-      }
+      /* ── BARS ── */
+      const slots=[];
+      if(barVis.dep)slots.push({val:depV,color:'#fb923c',glow:'#fb923c',name:'ยอดฝาก'});
+      if(barVis.exp)slots.push({val:expV,color:'#ff6b6b',glow:'#ff6b6b',name:'รายจ่าย'});
+      if(barVis.inc)slots.push({val:incV,color:'#00ffaa',glow:'#00ffaa',name:'รายได้'});
 
-      /* ── GREEN BAR = รายได้ (inc) ── */
-      if(incV>0){
-        const iW=Math.max(incV/maxV*CW,2);
-        ctx.save();
-        ctx.shadowColor='#00ffaa';ctx.shadowBlur=20;
-        const gi=ctx.createLinearGradient(PAD_L,0,PAD_L+iW,0);
-        gi.addColorStop(0,'rgba(0,255,170,.4)');gi.addColorStop(1,'#00ffaa');
-        ctx.fillStyle=gi;
-        ctx.beginPath();ctx.roundRect(PAD_L,midY+3,iW,barH,5);ctx.fill();
-        ctx.shadowBlur=0;
-        const itxt=incV>=1e6?(incV/1e6).toFixed(1)+'M':incV>=1000?(incV/1000).toFixed(0)+'K':Math.round(incV).toLocaleString();
-        ctx.fillStyle='#5fffcc';ctx.shadowColor='#00ffaa';ctx.shadowBlur=10;
-        ctx.font='bold 10px IBM Plex Sans Thai,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
-        ctx.fillText(itxt,PAD_L+iW+6,midY+barH/2+3);
-        ctx.restore();
-      }
+      let barY=y+LABEL_H;
+      slots.forEach(sl=>{
+        if(sl.val>0){
+          const bW=Math.max(sl.val/maxV*CW,2);
+          ctx.save();
+          ctx.shadowColor=sl.glow;ctx.shadowBlur=16;
+          const grd=ctx.createLinearGradient(PAD_L,0,PAD_L+bW,0);
+          grd.addColorStop(0,sl.color+'44');grd.addColorStop(1,sl.color);
+          ctx.fillStyle=grd;
+          ctx.beginPath();ctx.roundRect(PAD_L,barY,bW,BAR_H,4);ctx.fill();
+          ctx.shadowBlur=0;
+          const vtxt=sl.val>=1e6?(sl.val/1e6).toFixed(1)+'M':sl.val>=1000?(sl.val/1000).toFixed(0)+'K':Math.round(sl.val).toLocaleString();
+          ctx.fillStyle=sl.color;ctx.shadowColor=sl.glow;ctx.shadowBlur=8;
+          ctx.font='bold 10px IBM Plex Sans Thai,sans-serif';
+          ctx.textAlign='left';ctx.textBaseline='middle';
+          ctx.fillText(vtxt, PAD_L+bW+6, barY+BAR_H/2);
+          ctx.restore();
+        } else {
+          ctx.save();
+          ctx.fillStyle='#2e2c42';
+          ctx.font='9px IBM Plex Sans Thai,sans-serif';
+          ctx.textAlign='left';ctx.textBaseline='middle';
+          ctx.fillText('ยังไม่มี'+sl.name, PAD_L+4, barY+BAR_H/2);
+          ctx.restore();
+        }
+        barY+=BAR_H+BAR_GAP;
+      });
 
-      /* ── NET badge ── */
+      /* ── NET BADGE ── */
       const nc=net>=0?'#a78bfa':'#f472b6';
       const ntxt=(net>=0?'+':'')+( Math.abs(net)>=1e6?(net/1e6).toFixed(1)+'M':Math.abs(net)>=1000?(net/1000).toFixed(0)+'K':Math.round(net).toLocaleString() );
       ctx.save();
-      ctx.fillStyle=nc+'22';ctx.strokeStyle=nc+'55';ctx.lineWidth=1;
-      ctx.beginPath();ctx.roundRect(PAD_L,midY+barH+8,90,14,4);ctx.fill();ctx.stroke();
+      ctx.fillStyle=nc+'20';ctx.strokeStyle=nc+'44';ctx.lineWidth=1;
+      ctx.beginPath();ctx.roundRect(PAD_L, barY+2, 104, 14, 4);ctx.fill();ctx.stroke();
       ctx.fillStyle=nc;ctx.shadowColor=nc;ctx.shadowBlur=8;
-      ctx.font='bold 9px IBM Plex Sans Thai,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('กำไร: '+ntxt,PAD_L+45,midY+barH+15);
+      ctx.font='bold 9px IBM Plex Sans Thai,sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('กำไร: '+ntxt, PAD_L+52, barY+9);
       ctx.restore();
 
       /* compare ghost */
