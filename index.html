@@ -1069,8 +1069,10 @@ function drawGlowChart(items,mv,mv2,mode,gv,fr){
 
 function renderROICards(items){
   document.getElementById('roiGrid').innerHTML=items.map(it=>{
+    const depV=it.dep||0;
     const expV=it.exp||0;
     const incV=it.inc||0;
+    /* คำนวณจาก รายจ่าย(กรอก) - รายได้ เท่านั้น */
     const net=incV-expV;
     const months=it.months||1;
     const avgNet=months>0?net/months:net;
@@ -1081,12 +1083,31 @@ function renderROICards(items){
     return`<div class="roi-card" style="border-left-color:${isP?gc:'#ff6b6b'};">
       <div class="rc-grp">${it.group?it.group.replace('การตลาด ยิงแอด','ยิงแอด'):''}</div>
       <div class="rc-name">${it.label}</div>
-      <div class="rc-row"><span class="rc-lbl">รายจ่าย (กรอก)</span><span class="rc-val" style="color:#ff6b6b;">${f(expV)||'—'}</span></div>
-      <div class="rc-row"><span class="rc-lbl">รายได้</span><span class="rc-val" style="color:#00ffaa;">${f(incV)}</span></div>
-      <div class="rc-row"><span class="rc-lbl">กำไรสุทธิ</span><span class="rc-val" style="color:${isP?'#a78bfa':'#f472b6'};font-size:12px;">${f(net)}</span></div>
-      <div class="rc-row"><span class="rc-lbl">ROI</span><span class="rc-val" style="color:${isP?'#00ffaa':'#ff6b6b'};">${pct}%</span></div>
-      <div class="rc-payback" style="color:${isP?'#00ffaa':'#ff6b6b'};text-shadow:0 0 10px ${isP?'#00ffaa88':'#ff6b6b88'};">
-        ${expV===0?'⚠ ยังไม่กรอกรายจ่าย':payback?`คืนทุน ~${payback} เดือน`:(isP?'✓ คืนทุนแล้ว':'✗ ยังไม่คืนทุน')}
+      <div style="height:0.5px;background:rgba(255,255,255,.08);margin:8px 0;"></div>
+      <div class="rc-row" style="margin-bottom:6px;">
+        <span class="rc-lbl" style="font-size:11px;font-weight:500;color:#fb923c;letter-spacing:.3px;">💰 ยอดฝาก (dep)</span>
+        <span class="rc-val" style="color:#fb923c;font-size:13px;">${f(depV)}</span>
+      </div>
+      <div style="height:0.5px;background:rgba(255,255,255,.06);margin:6px 0;"></div>
+      <div class="rc-row" style="margin-bottom:5px;">
+        <span class="rc-lbl" style="font-size:11px;font-weight:500;color:#ff6b6b;letter-spacing:.3px;">📤 รายจ่าย</span>
+        <span class="rc-val" style="color:#ff6b6b;font-size:13px;">${expV?f(expV):'—'}</span>
+      </div>
+      <div class="rc-row" style="margin-bottom:5px;">
+        <span class="rc-lbl" style="font-size:11px;font-weight:500;color:#00ffaa;letter-spacing:.3px;">📥 รายได้</span>
+        <span class="rc-val" style="color:#00ffaa;font-size:13px;">${f(incV)}</span>
+      </div>
+      <div style="height:0.5px;background:rgba(255,255,255,.06);margin:6px 0;"></div>
+      <div class="rc-row" style="margin-bottom:5px;">
+        <span class="rc-lbl" style="font-size:12px;font-weight:600;color:var(--txt1);letter-spacing:.3px;">📊 กำไรสุทธิ</span>
+        <span class="rc-val" style="color:${isP?'#a78bfa':'#f472b6'};font-size:15px;font-weight:600;">${f(net)}</span>
+      </div>
+      <div class="rc-row">
+        <span class="rc-lbl" style="font-size:11px;color:var(--txt2);">ROI %</span>
+        <span class="rc-val" style="color:${isP?'#00ffaa':'#ff6b6b'};font-size:12px;font-weight:500;">${pct}%</span>
+      </div>
+      <div class="rc-payback" style="margin-top:10px;color:${isP?'#00ffaa':'#ff6b6b'};text-shadow:0 0 12px ${isP?'#00ffaa99':'#ff6b6b99'};font-size:12px;font-weight:600;">
+        ${expV===0?'⚠ ยังไม่กรอกรายจ่าย':payback?`⏱ คืนทุน ~${payback} เดือน`:(isP?'✅ คืนทุนแล้ว':'❌ ยังไม่คืนทุน')}
       </div>
     </div>`;
   }).join('');
